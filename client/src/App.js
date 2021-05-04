@@ -2,48 +2,45 @@ import React, { Component } from "react";
 import getWeb3 from "./getWeb3";
 import comptrollerAbi from "./comptrollerAbi.json";
 import cETHAbi from "./cETHAbi.json";
-import cTokenAbi from "./cTokenAbi.json"
+import cTokenAbi from "./cTokenAbi.json";
+import SDK from "./SDK/compoundSDK.js";
 
 import "./App.css";
+class SDK2{
+  init = async()=>{
+    // Get network provider and web3 instance.
+    this.web3 = await getWeb3();
 
+    // Use web3 to get the user's accounts.
+    this.accounts = await this.web3.eth.getAccounts();
+
+    // Get the contract instance.
+    this.networkId = await this.web3.eth.net.getId();
+
+    this.cERC20 = [
+      {name:"DAI", address: "0x6d7f0754ffeb405d23c51ce938289d4835be3b14"},
+      {name:"BAT", address: "0xebf1a11532b93a529b5bc942b4baa98647913002"},
+      {name:"REP", address:"0xebe09eb3411d18f4ff8d859e096c533cac5c6b60"},
+      {name:"USDC", address:"0x5b281a6dda0b271e91ae35de655ad301c976edb1"},
+      {name:"USDT", address:"0x2fb298bdbef468638ad6653ff8376575ea41e768"},
+      {name:"WBTC", address:"0x0014f450b8ae7708593f4a46f8fa6e5d50620f96"},
+      {name:"ZRX", address:"0x52201ff1720134bbbbb2f6bc97bf3715490ec19b"}
+    ];
+    
+    this.cERC20.map(object=>{
+      object.instance = new this.web3.eth.Contract(cTokenAbi,object.address);
+    });
+    console.log(this.cERC20);
+   
+  }
+}
 class App extends Component {
   state = { loaded:false , marketAccounts:[], tokenName:"", tokenInvestAmount:0,tokenWithdrawAmount:0};
 
   componentDidMount = async () => {
     try {
-      // Get network provider and web3 instance.
-      this.web3 = await getWeb3();
-
-      // Use web3 to get the user's accounts.
-      this.accounts = await this.web3.eth.getAccounts();
-
-      // Get the contract instance.
-      this.networkId = await this.web3.eth.net.getId();
-
-      //rinkeby testnet contracts
-      this.comptrollerInstance = new this.web3.eth.Contract(comptrollerAbi,"0x2eaa9d77ae4d8f9cdd9faacd44016e746485bddb");
-      this.cDAIInstance = new this.web3.eth.Contract(cTokenAbi,"0x6d7f0754ffeb405d23c51ce938289d4835be3b14");
-      this.cBATInstance = new this.web3.eth.Contract(cTokenAbi,"0xebf1a11532b93a529b5bc942b4baa98647913002");
-      this.cREPInstance = new this.web3.eth.Contract(cTokenAbi,"0xebe09eb3411d18f4ff8d859e096c533cac5c6b60");
-      this.cUSDCInstance = new this.web3.eth.Contract(cTokenAbi,"0x5b281a6dda0b271e91ae35de655ad301c976edb1");
-      this.cUSDTInstance = new this.web3.eth.Contract(cTokenAbi,"0x2fb298bdbef468638ad6653ff8376575ea41e768");
-      this.cWBTCInstance = new this.web3.eth.Contract(cTokenAbi,"0x0014f450b8ae7708593f4a46f8fa6e5d50620f96");
-      this.cZRXInstance = new this.web3.eth.Contract(cTokenAbi,"0x52201ff1720134bbbbb2f6bc97bf3715490ec19b");
-      this.cETHInstance = new this.web3.eth.Contract(cETHAbi,"0xd6801a1dffcd0a410336ef88def4320d6df1883e");
-      this.cTokenAddresses = [this.cDAIInstance.options.address,this.cBATInstance.options.address,this.cREPInstance.options.address,this.cUSDCInstance.options.address,this.cUSDTInstance.options.address,this.cWBTCInstance.options.address,this.cZRXInstance.options.address,this.cETHInstance.options.address];
-      //this.enterMarket();
-      //this.mintCEth();
-      //this.mintCToken(this.cDAIInstance, 4*1e16);
-      //this.redeemCEth(4*1e15);
-      //this.balanceOfCEth();
-      //console.log(this.cBATInstance.symbol);
-      const markets = await this.comptrollerInstance.methods.getAssetsIn(this.accounts[0]).call();
-      console.log(markets.length);
-      if(markets.length<8){
-        this.enterMarket()
-        console.log("market not fully loaded");
-      }
-      this.setState({marketAccounts:markets});
+      this.sdk= new SDK();
+      await this.sdk.init();
       this.setState({loaded:true});
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -111,35 +108,34 @@ class App extends Component {
  }
 
   handleSubmit = async() => {
-    if(this.state.tokenName==="ETH"){
-      await this.enterMarket();
-      const amount = (this.state.tokenInvestAmount*1e18).toString();
-      await this.balanceOfCEth();
-      console.log("Amount for minting is "+amount);
-      await this.mintCEth(amount);
-      await this.balanceOfCEth();
-    }
-    alert("Investment Successfull");
+    await this.sdk.Invest(this.state.tokenName,(this.state.tokenInvestAmount*1e18).toString());
+    // if(this.state.tokenName==="ETH"){
+    //   await this.enterMarket();
+    //   const amount = (this.state.tokenInvestAmount*1e18).toString();
+    //   await this.balanceOfCEth();
+    //   console.log("Amount for minting is "+amount);
+    //   await this.mintCEth(amount);
+    //   await this.balanceOfCEth();
+    // }
+    // alert("Investment Successfull");
   }
 
   handleSubmitWithdraw = async() => {
-    if(this.state.tokenName==="ETH"){
-      //await this.enterMarket();
-      const amount = (this.state.tokenWithdrawAmount*1e18).toString();
-      await this.balanceOfCEth();
-      console.log("Amount for redeeming is "+amount);
-      await this.redeemCEth(amount);
-      await this.balanceOfCEth();
-    }
-    alert("Withdraw Successfull");
+    await this.sdk.Withdraw(this.state.tokenName,(this.state.tokenWithdrawAmount*1e18).toString());
+    // if(this.state.tokenName==="ETH"){
+    //   //await this.enterMarket();
+    //   const amount = (this.state.tokenWithdrawAmount*1e18).toString();
+    //   await this.balanceOfCEth();
+    //   console.log("Amount for redeeming is "+amount);
+    //   await this.redeemCEth(amount);
+    //   await this.balanceOfCEth();
+    // }
+    // alert("Withdraw Successfull");
   }
 
   handleSubmitMax = async() => {
-    if(this.state.tokenName==="ETH"){
-      //await this.enterMarket();
-      const maxBalance = await this.cETHInstance.methods.balanceOfUnderlying(this.accounts[0]).call();
-      this.setState({tokenWithdrawAmount:(maxBalance/1e18)});
-    }
+    const maxBalance = await this.sdk.getMaxWithdraw(this.state.tokenName);
+    this.setState({tokenWithdrawAmount:(maxBalance/1e18)});
   }
 
   render() {

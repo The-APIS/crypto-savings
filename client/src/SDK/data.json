@@ -1,0 +1,35 @@
+
+{
+    "Addresses":
+    [
+        {   
+            "id":4,
+            "cERC20":[
+                {"name":"DAI", "address": "0x6d7f0754ffeb405d23c51ce938289d4835be3b14"},
+                {"name":"BAT", "address": "0xebf1a11532b93a529b5bc942b4baa98647913002"},
+                {"name":"REP", "address":"0xebe09eb3411d18f4ff8d859e096c533cac5c6b60"},
+                {"name":"USDC", "address":"0x5b281a6dda0b271e91ae35de655ad301c976edb1"},
+                {"name":"USDT", "address":"0x2fb298bdbef468638ad6653ff8376575ea41e768"},
+                {"name":"WBTC", "address":"0x0014f450b8ae7708593f4a46f8fa6e5d50620f96"},
+                {"name":"ZRX", "address":"0x52201ff1720134bbbbb2f6bc97bf3715490ec19b"}
+            ],
+            "cETH":{"address":"0xd6801a1dffcd0a410336ef88def4320d6df1883e"},
+            "comptroller":{"address":"0x2eaa9d77ae4d8f9cdd9faacd44016e746485bddb"}
+        },
+        {   
+            "id":1,
+            "cERC20":[
+                {"name":"DAI", "address": "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643"},
+                {"name":"BAT", "address": "0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e"},
+                {"name":"REP", "address":"0x158079ee67fce2f58472a96584a73c7ab9ac95c1"},
+                {"name":"USDC", "address":"0x39aa39c021dfbae8fac545936693ac917d5e7563"},
+                {"name":"USDT", "address":"0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9"},
+                {"name":"WBTC", "address":"0xc11b1268c1a384e55c48c2391d8d480264a3a7f4"},
+                {"name":"ZRX", "address":"0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407"}
+            ],
+            "cETH":{"address":"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5"},
+            "comptroller":{"address":"0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b"}
+        }
+    ]
+    
+}
