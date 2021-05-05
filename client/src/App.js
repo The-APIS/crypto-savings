@@ -1,39 +1,8 @@
 import React, { Component } from "react";
-import getWeb3 from "./getWeb3";
-import comptrollerAbi from "./comptrollerAbi.json";
-import cETHAbi from "./cETHAbi.json";
-import cTokenAbi from "./cTokenAbi.json";
 import SDK from "./SDK/compoundSDK.js";
 
 import "./App.css";
-class SDK2{
-  init = async()=>{
-    // Get network provider and web3 instance.
-    this.web3 = await getWeb3();
 
-    // Use web3 to get the user's accounts.
-    this.accounts = await this.web3.eth.getAccounts();
-
-    // Get the contract instance.
-    this.networkId = await this.web3.eth.net.getId();
-
-    this.cERC20 = [
-      {name:"DAI", address: "0x6d7f0754ffeb405d23c51ce938289d4835be3b14"},
-      {name:"BAT", address: "0xebf1a11532b93a529b5bc942b4baa98647913002"},
-      {name:"REP", address:"0xebe09eb3411d18f4ff8d859e096c533cac5c6b60"},
-      {name:"USDC", address:"0x5b281a6dda0b271e91ae35de655ad301c976edb1"},
-      {name:"USDT", address:"0x2fb298bdbef468638ad6653ff8376575ea41e768"},
-      {name:"WBTC", address:"0x0014f450b8ae7708593f4a46f8fa6e5d50620f96"},
-      {name:"ZRX", address:"0x52201ff1720134bbbbb2f6bc97bf3715490ec19b"}
-    ];
-    
-    this.cERC20.map(object=>{
-      object.instance = new this.web3.eth.Contract(cTokenAbi,object.address);
-    });
-    console.log(this.cERC20);
-   
-  }
-}
 class App extends Component {
   state = { loaded:false , marketAccounts:[], tokenName:"", tokenInvestAmount:0,tokenWithdrawAmount:0};
 
