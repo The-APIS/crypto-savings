@@ -28,7 +28,7 @@ export default class SDK {
     });
     console.log(this.network);
     this.cERC20 = this.network.cERC20;
-    this.cERC20.map(object => {
+    this.cERC20.forEach(object => {
       object.instance = new this.web3.eth.Contract(cTokenAbi, object.address);
     });
     this.cTokenAddresses = this.cERC20.map(object => {
