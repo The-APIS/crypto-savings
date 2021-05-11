@@ -3,6 +3,7 @@ import cETHAbi from "./abis/cETHAbi.json";
 import cTokenAbi from "./abis/cTokenAbi.json";
 import getWeb3 from "./web3/getWeb3";
 import Data from "./data.json";
+import log from 'loglevel';
 
 export default class SDK {
 
@@ -20,17 +21,18 @@ export default class SDK {
 
     this.chainId = await this.web3.eth.getChainId();
 
-    console.log("chain id is " + this.chainId);
+    log.log("chain id is " + this.chainId);
 
     // Fetch data from json file (cERC20,cETH,comptroller) as per the newtwork id
     this.network = Data.Addresses.find((network) => {
       return (network.id === this.networkId && network.chainId === this.chainId);
     });
-    console.log(this.network);
+    log.log(this.network);
     this.cERC20 = this.network.cERC20;
     this.cERC20.forEach(object => {
       object.instance = new this.web3.eth.Contract(cTokenAbi, object.address);
     });
+
     this.cTokenAddresses = this.cERC20.map(object => {
       return object.address;
     });
@@ -43,102 +45,118 @@ export default class SDK {
 
     if (markets.length < 8) {
       this.enterMarket();
-      console.log("market not fully loaded");
+      log.warn("market not fully loaded");
     }
   }
 
+  getSupportedTokens = () =>{
+    return this.cERC20;
+  }
   enterMarket = async () => {
     const errorCode = await this.comptroller.instance.methods.enterMarkets(this.cTokenAddresses).send({ from: this.accounts[0] });
-    console.log("error code is: ");
-    console.log(errorCode);
+    log.log("error code is: ");
+    log.log(errorCode);
     const markets = await this.comptroller.instance.methods.getAssetsIn(this.accounts[0]).call();
     //this.setState({marketAccounts:markets});
-    console.log("market is ");
-    console.log(markets);
+    log.log("market is ");
+    log.log(markets);
   };
 
   mintCEth = async (amount) => {
 
     const errorCode = await this.cETH.instance.methods.mint().send({ from: this.accounts[0], value: amount });
-    console.log("Minted result: ");
-    console.log(errorCode);
+    log.log("Minted result: ");
+    log.log(errorCode);
   };
 
   mintCToken = async (cToken, amount) => {
     //approve before minting
-    const errorCode = await this.cERC20.instance.methods.mint(amount).send({ from: this.accounts[0] });
-    console.log("Minted result: ");
-    console.log(errorCode);
+    const errorCode = await cToken.instance.methods.mint(amount).send({ from: this.accounts[0] });
+    log.log("Minted result: ");
+    log.log(errorCode);
   };
 
   redeemCEth = async (amount) => {
     const errorCode = await this.cETH.instance.methods.redeem(amount).send({ from: this.accounts[0] });
-    console.log("Redeem result: ");
-    console.log(errorCode);
+    log.log("Redeem result: ");
+    log.log(errorCode);
   };
 
   redeemCToken = async (cToken, amount) => {
-    const errorCode = await this.cERC20.instance.methods.redeemUnderlying(amount).send({ from: this.accounts[0] });
-    console.log("Redeem result: ");
-    console.log(errorCode);
+    const errorCode = await cToken.instance.methods.redeemUnderlying(amount).send({ from: this.accounts[0] });
+    log.log("Redeem result: ");
+    log.log(errorCode);
   };
 
   balanceOfCEth = async () => {
-    console.log(this.cETH.instance.methods);
+    log.log(this.cETH.instance.methods);
     const balance = await this.cETH.instance.methods.balanceOfUnderlying(this.accounts[0]).call();
-    console.log("balance of cEth");
-    console.log(balance / 1e18);
+    log.log("balance of cEth");
+    log.log(balance / 1e18);
   }
 
   balanceOfCToken = async (cToken) => {
     const balance = await cToken.instance.methods.balanceOfUnderlying(this.accounts[0]).call();
-    console.log("balance of token");
-    console.log(balance / 1e18);
+    log.log("balance of token");
+    log.log(balance / 1e18);
   }
 
   supplyRateEth = async () => {
     const rate = await this.cETH.instance.methods.supplyRatePerBlock().call();
-    console.log("supply rate of eth");
-    console.log(rate);
+    log.log("supply rate of eth");
+    log.log(rate);
   }
 
   supplyRateCToken = async (cToken) => {
     const rate = await cToken.instance.methods.supplyRatePerBlock().call();
-    console.log("supply rate of eth");
-    console.log(rate);
+    log.log("supply rate of eth");
+    log.log(rate);
   }
 
-  Invest = async (tokenName, amount) => {
+  invest = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      //await this.enterMarket();
-      //const amount = (this.state.tokenInvestAmount*1e18).toString();
-      console.log("showing this");
-      console.log(this);
-      console.log(this.cTokenAddresses);
       await this.balanceOfCEth();
-      console.log("Amount for minting is " + amount);
+      log.log("Amount for minting is " + amount);
       await this.mintCEth(amount);
       await this.balanceOfCEth();
+    }
+    else{
+      let token = this.cERC20.find((cERC20) => {
+        return (cERC20.name === tokenName);
+      });
+      await this.mintCToken(token);
+      await this.balanceOfCToken(token);
     }
     alert("Investment Successfull");
   }
 
-  Withdraw = async (tokenName, amount) => {
+  withdraw = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      //await this.enterMarket();
-      //const amount = (this.state.tokenWithdrawAmount*1e18).toString();
       await this.balanceOfCEth();
-      console.log("Amount for redeeming is " + amount);
+      log.log("Amount for redeeming is " + amount);
       await this.redeemCEth(amount);
       await this.balanceOfCEth();
+    }
+    else{
+      let token = this.cERC20.find((cERC20) => {
+        return (cERC20.name === tokenName);
+      });
+      await this.redeemCToken(token);
+      await this.balanceOfCToken(token);
     }
     alert("Withdraw Successfull");
   }
 
   getMaxWithdraw = async (tokenName) => {
     if (tokenName === "ETH") {
-      //await this.enterMarket();
       const maxBalance = await this.cETH.instance.methods.balanceOfUnderlying(this.accounts[0]).call();
+      return maxBalance;
+    }
+    else{
+      let token = this.cERC20.find((cERC20) => {
+        return (cERC20.name === tokenName);
+      });
+      const maxBalance = await token.instance.methods.balanceOfUnderlying(this.accounts[0]).call();
       return maxBalance;
     }
   }
