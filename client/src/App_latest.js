@@ -7,12 +7,9 @@ import log from 'loglevel';
 function App() {
   let sdk;
   const [state, setstate] = useState({loaded:false , marketAccounts:[], tokenName:"", tokenInvestAmount:0,tokenWithdrawAmount:0});
-  const [supportedTokens, setSupportedTokens] = useState([]);
-  let market;
-  
+
   function handleInputChange(event){
     log.warn("entered method");
-    log.warn(event);
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
@@ -38,13 +35,10 @@ function App() {
     async function fetchSDK() {
       try {
         sdk= new SDK();
+        
         log.log(sdk);
         await sdk.init();
         setstate({loaded:true});
-        market = sdk.getSupportedTokens();
-        setSupportedTokens(supportedTokens.push(market));
-        log.warn(market);
-        log.warn(supportedTokens);
       } catch (error) {
         // Catch any errors for any of the above operations.
         alert(
@@ -60,6 +54,8 @@ function App() {
     }
   },[]);
 
+  
+
   if (!state.loaded) {
     return <div>Loading Web3, accounts, and contract...</div>;
   }
@@ -68,6 +64,7 @@ function App() {
       <h1>Titans Finance</h1>
       <label>Total Markets entered :</label>
       <div>
+        
       </div>
       <div>
         <h2>Invest Crypto</h2>
@@ -75,7 +72,6 @@ function App() {
         <select name="tokenName" id="tokenName" onChange={handleInputChange}>
           <option value="ETH" selected></option>
           <option value="ETH">ETH</option>
-          
           <option value="ETH">ETH</option>
         </select><br></br>
         <label>Amount</label><input type="text" name="tokenInvestAmount" onChange={handleInputChange}></input>
@@ -90,6 +86,9 @@ function App() {
           <option value="ETH" selected></option>
           <option value="ETH">ETH</option>
           <option value="ETH">ETH</option>
+        </select><br></br>
+        <select name="tokenName" id="tokenName" onChange={handleInputChange}>
+        
         </select><br></br>
         <label>Amount</label><input type="text" name="tokenWithdrawAmount" onChange={handleInputChange} value={state.tokenWithdrawAmount}></input>
         <button type="button" onClick={handleSubmitMax}>Max</button>
