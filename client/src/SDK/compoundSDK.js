@@ -40,13 +40,12 @@ export default class SDK {
     this.cETH.instance = new this.web3.eth.Contract(cETHAbi, this.cETH.address);
     this.comptroller = this.network.comptroller;
     this.comptroller.instance = new this.web3.eth.Contract(comptrollerAbi, this.comptroller.address);
-
-    const markets = await this.comptroller.instance.methods.getAssetsIn(this.accounts[0]).call();
-
-    if (markets.length < 8) {
+    this.markets = await this.comptroller.instance.methods.getAssetsIn(this.accounts[0]).call();
+    if (this.markets.length < 8) {
       this.enterMarket();
       log.warn("market not fully loaded");
     }
+    return this.markets;
   }
 
   getSupportedTokens = () =>{
@@ -115,10 +114,10 @@ export default class SDK {
 
   invest = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      await this.balanceOfCEth();
+      log.warn(await this.balanceOfCEth());
       log.log("Amount for minting is " + amount);
       await this.mintCEth(amount);
-      await this.balanceOfCEth();
+      log.warn(await this.balanceOfCEth());
     }
     else{
       let token = this.cERC20.find((cERC20) => {
@@ -132,7 +131,7 @@ export default class SDK {
 
   withdraw = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      await this.balanceOfCEth();
+      log.warn(await this.balanceOfCEth());
       log.log("Amount for redeeming is " + amount);
       await this.redeemCEth(amount);
       await this.balanceOfCEth();
