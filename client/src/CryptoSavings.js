@@ -8,10 +8,8 @@ const InvestLayout = ()=>{
 
   const sdk = useContext(SDKContext);
   const tokens = useContext(SupportedTokensContext);
-  const [tokenName, settokenName] = useState("");
+  const [tokenName, settokenName] = useState("ETH");
   const [tokenAmount, settokenAmount] = useState(0);
-  console.log(tokens[0].name);
- 
 
   async function handleInputChange(event) {
     const target = event.target;
@@ -29,13 +27,11 @@ const InvestLayout = ()=>{
     await sdk.invest(tokenName,(tokenAmount*1e18).toString());
   }
   return(
-    <div>
-      
       <div>
       <h2>Invest Crypto</h2>
       <label htmlFor="tokenName">Choose a crypto:</label>
       <select name="tokenName" id="tokenName" onChange={handleInputChange}>
-        <option value="ETH" selected></option>
+        <option value="ETH" selected>ETH</option>
         {tokens.map((token) => (
           <option value={token.name}>{token.name}</option>
         ))}
@@ -44,7 +40,6 @@ const InvestLayout = ()=>{
       <br></br>
       <button type="button" onClick={handleSubmit}>Invest</button>
       </div>
-    </div>
   );
 }
 
@@ -52,7 +47,7 @@ const WithdrawLayout = ()=> {
 
   const sdk = useContext(SDKContext);
   const tokens = useContext(SupportedTokensContext);
-  const [tokenName, settokenName] = useState("");
+  const [tokenName, settokenName] = useState("ETH");
   const [tokenAmount, settokenAmount] = useState(0);
   async function handleInputChange(event) {
     const target = event.target;
@@ -113,6 +108,7 @@ function CryptoSavings() {
       log.error(error);
     }
   }
+
   useEffect(() => {
     fetchSDK();
     
@@ -120,11 +116,11 @@ function CryptoSavings() {
       
     }
   }, []);
-  console.log("main.supportedTokens");
-  console.log(supportedTokens);
+
   if (!loaded) {
     return <div>Loading Web3, accounts, and contract...</div>;
   }
+
   return (
     <div>
       <SDKContext.Provider value={sdk}>

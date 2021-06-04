@@ -1,5 +1,5 @@
 /* eslint-disable react/react-in-jsx-scope */
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import './App.css';
 import CryptoSavings from './CryptoSavings';
 

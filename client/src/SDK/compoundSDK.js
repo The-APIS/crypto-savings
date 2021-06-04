@@ -51,6 +51,7 @@ export default class SDK {
   getSupportedTokens = () =>{
     return this.cERC20;
   }
+  
   enterMarket = async () => {
     const errorCode = await this.comptroller.instance.methods.enterMarkets(this.cTokenAddresses).send({ from: this.accounts[0] });
     log.log("error code is: ");
@@ -76,7 +77,7 @@ export default class SDK {
   };
 
   redeemCEth = async (amount) => {
-    const errorCode = await this.cETH.instance.methods.redeem(amount).send({ from: this.accounts[0] });
+    const errorCode = await this.cETH.instance.methods.redeemUnderlying(amount).send({ from: this.accounts[0] });
     log.log("Redeem result: ");
     log.log(errorCode);
   };
@@ -114,10 +115,10 @@ export default class SDK {
 
   invest = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      log.warn(await this.balanceOfCEth());
+      log.log(await this.balanceOfCEth());
       log.log("Amount for minting is " + amount);
       await this.mintCEth(amount);
-      log.warn(await this.balanceOfCEth());
+      log.log(await this.balanceOfCEth());
     }
     else{
       let token = this.cERC20.find((cERC20) => {
@@ -131,7 +132,7 @@ export default class SDK {
 
   withdraw = async (tokenName, amount) => {
     if (tokenName === "ETH") {
-      log.warn(await this.balanceOfCEth());
+      log.log(await this.balanceOfCEth());
       log.log("Amount for redeeming is " + amount);
       await this.redeemCEth(amount);
       await this.balanceOfCEth();
