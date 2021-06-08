@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dapis/sdk": "^0.3.2",
     "debug": "^4.3.1",
     "loglevel": "^1.7.1",
     "react": "16.11.0",
