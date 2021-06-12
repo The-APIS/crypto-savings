@@ -12,6 +12,9 @@ const InvestLayout = ()=>{
   const tokens = useContext(SupportedTokensContext);
   const [tokenName, settokenName] = useState("ETH");
   const [tokenAmount, settokenAmount] = useState(0);
+  const [loader, setloader] = useState(false)
+  const [counter, setcounter] = useState(0)
+  const [loaderText, setloaderText] = useState("")
 
   async function handleInputChange(event) {
     const target = event.target;
@@ -25,8 +28,36 @@ const InvestLayout = ()=>{
     }
   }
 
+  function toggleLoader(){
+    if(loader===false)
+    {
+      setloader(true);
+      setloaderText("Loading...");
+    }
+    else{
+      setloader(false);
+      setloaderText("");
+    }
+  }
+
   async function handleSubmit(){
-    await sdk.invest(tokenName,(tokenAmount*1e18).toString());
+    setloader(true);
+    sdk.invest(tokenName,(tokenAmount*1e18).toString())
+    .on('error', function(error){ 
+      console.log("error: ")
+      console.log(error.message); })
+    .on('transactionHash', function(transactionHash){console.log("transaction hash: " +transactionHash); })
+    .on('receipt', function(receipt){
+        console.log("reciept");
+        console.log(receipt); 
+    })
+    .on('confirmation', function(confirmationNumber, receipt){ 
+      console.log("confirmed: "+ confirmationNumber);
+      console.log(receipt);
+      setcounter(counter+1);
+      if(counter===3){
+      toggleLoader(); 
+      console.log("counter is 3")}});
   }
   return(
       <div>
@@ -40,7 +71,8 @@ const InvestLayout = ()=>{
       </select><br></br>
       <label>Amount</label><input type="text" name="tokenInvestAmount" onChange={handleInputChange}></input>
       <br></br>
-      <button type="button" onClick={handleSubmit}>Invest</button>
+      <button type="button" onClick={handleSubmit}>Invest</button><br/>
+      <label value={loaderText}>{loaderText}</label>
       </div>
   );
 }
@@ -65,7 +97,18 @@ const WithdrawLayout = ()=> {
   }
 
   async function handleSubmit(){
-    await sdk.withdraw(tokenName,(tokenAmount*1e18).toString());
+    sdk.withdraw(tokenName,(tokenAmount*1e18).toString())
+    .on('error', function(error){ 
+      console.log("error: ")
+      console.log(error.message); })
+    .on('transactionHash', function(transactionHash){ console.log("transaction hash: " +transactionHash); })
+    .on('receipt', function(receipt){
+        console.log("reciept");
+        console.log(receipt); 
+    })
+    .on('confirmation', function(confirmationNumber, receipt){ console.log("confirmed: "+ confirmationNumber);
+        console.log(receipt) });
+;
   }
 
   async function handleSubmitMax(){
@@ -93,7 +136,6 @@ const WithdrawLayout = ()=> {
 }
 
 const BalanceLayout = ()=> {
-
   const sdk = useContext(SDKContext);
   const tokens = useContext(SupportedTokensContext);
   const [tokenName, settokenName] = useState("ETH");
