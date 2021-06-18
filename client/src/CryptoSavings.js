@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
-import SDK from "./SDK/compoundSDK.js";
+import SDK from '@dapis/sdk/src/compoundSDK';
 import log from 'loglevel';
 import {NavContext} from './context/navContext';
 import {SDKContext, SupportedTokensContext} from './context/SDKContext.js';
@@ -10,6 +10,9 @@ const InvestLayout = ()=>{
   const tokens = useContext(SupportedTokensContext);
   const [tokenName, settokenName] = useState("ETH");
   const [tokenAmount, settokenAmount] = useState(0);
+  const [loader, setloader] = useState(false)
+  const [counter, setcounter] = useState(0)
+  const [loaderText, setloaderText] = useState("")
 
   async function handleInputChange(event) {
     const target = event.target;
@@ -23,8 +26,29 @@ const InvestLayout = ()=>{
     }
   }
 
+  function toggleLoader(){
+    setloader(!loader);
+    setloaderText(loader ? '' : 'Loading...');
+  }
+
   async function handleSubmit(){
-    await sdk.invest(tokenName,(tokenAmount*1e18).toString());
+    setloader(true);
+    sdk.invest(tokenName,(tokenAmount*1e18).toString())
+    .on('error', function(error){ 
+      console.log("error: ")
+      console.log(error.message); })
+    .on('transactionHash', function(transactionHash){console.log("transaction hash: " +transactionHash); })
+    .on('receipt', function(receipt){
+        console.log("reciept");
+        console.log(receipt); 
+    })
+    .on('confirmation', function(confirmationNumber, receipt){ 
+      console.log("confirmed: "+ confirmationNumber);
+      console.log(receipt);
+      setcounter(counter+1);
+      if(counter===3){
+      toggleLoader(); 
+      console.log("counter is 3")}});
   }
   return(
       <div>
@@ -33,12 +57,13 @@ const InvestLayout = ()=>{
       <select name="tokenName" id="tokenName" onChange={handleInputChange}>
         <option value="ETH" selected>ETH</option>
         {tokens.map((token) => (
-          <option value={token.name}>{token.name}</option>
+          <option value={token.name} key={token.name}>{token.name}</option>
         ))}
       </select><br></br>
       <label>Amount</label><input type="text" name="tokenInvestAmount" onChange={handleInputChange}></input>
       <br></br>
-      <button type="button" onClick={handleSubmit}>Invest</button>
+      <button type="button" onClick={handleSubmit}>Invest</button><br/>
+      <label value={loaderText}>{loaderText}</label>
       </div>
   );
 }
@@ -49,6 +74,7 @@ const WithdrawLayout = ()=> {
   const tokens = useContext(SupportedTokensContext);
   const [tokenName, settokenName] = useState("ETH");
   const [tokenAmount, settokenAmount] = useState(0);
+  
   async function handleInputChange(event) {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
@@ -62,11 +88,22 @@ const WithdrawLayout = ()=> {
   }
 
   async function handleSubmit(){
-    await sdk.withdraw(tokenName,(tokenAmount*1e18).toString());
+    sdk.withdraw(tokenName,(tokenAmount*1e18).toString())
+    .on('error', function(error){ 
+      console.log("error: ")
+      console.log(error.message); })
+    .on('transactionHash', function(transactionHash){ console.log("transaction hash: " +transactionHash); })
+    .on('receipt', function(receipt){
+        console.log("reciept");
+        console.log(receipt); 
+    })
+    .on('confirmation', function(confirmationNumber, receipt){ console.log("confirmed: "+ confirmationNumber);
+        console.log(receipt) });
+;
   }
 
   async function handleSubmitMax(){
-    const maxBalance = await sdk.getMaxWithdraw(tokenName);
+    const maxBalance = await sdk.getBalance(tokenName);
     settokenAmount(maxBalance/1e18);
 
   }
@@ -76,15 +113,51 @@ const WithdrawLayout = ()=> {
       <h2>Withdraw Invested Crypto</h2>
       <label htmlFor="tokenName">Choose a crypto:</label>
       <select name="tokenName" id="tokenName" onChange={handleInputChange}>
-        <option value="ETH">ETH</option>
+        <option value="ETH" selected >ETH</option>
         {tokens.map((token) => (
-          <option value={token.name}>{token.name}</option>
+          <option value={token.name} key={token.name}>{token.name}</option>
         ))}
       </select><br></br>
       <label>Amount</label><input type="text" name="tokenWithdrawAmount" value={tokenAmount} onChange={handleInputChange} ></input>
       <button type="button" onClick={handleSubmitMax}>Max</button>
       <br></br>
       <button type="button" onClick={handleSubmit}>Withdraw</button>
+    </div>
+  )
+}
+
+const BalanceLayout = ()=> {
+  const sdk = useContext(SDKContext);
+  const tokens = useContext(SupportedTokensContext);
+  const [tokenName, settokenName] = useState("ETH");
+  const [tokenAmount, settokenAmount] = useState();
+
+  async function handleInputChange(event) {
+    const { target } = event;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    await settokenName(value);
+  }
+  async function setBalance(){
+    const maxBalance = await sdk.getBalance(tokenName);
+    settokenAmount(maxBalance/1e18);
+  }
+
+  useEffect(() => {
+    if(!(tokenAmount===undefined))
+    alert('Balance: ' +tokenAmount);
+  }, [tokenAmount,tokenName])
+
+  return(
+    <div>
+      <h2>Balance</h2>
+      <label htmlFor="tokenName">Choose a crypto:</label>
+      <select name="tokenName" id="tokenName" onChange={handleInputChange}>
+        <option value="ETH">ETH</option>
+        {tokens.map((token) => (
+          <option value={token.name} key={token.name}>{token.name}</option>
+        ))}
+      </select><br></br>
+      <button type="button" onClick={setBalance}>Get Balance</button><br></br>
     </div>
   )
 }
@@ -111,11 +184,7 @@ function CryptoSavings() {
 
   useEffect(() => {
     fetchSDK();
-    
-    return () => {
-      
-    }
-  }, []);
+  }, [fetchSDK]);
 
   if (!loaded) {
     return <div>Loading Web3, accounts, and contract...</div>;
@@ -129,10 +198,16 @@ function CryptoSavings() {
       <div>
         <button onClick={ ()=>setNavValue('invest')}>Invest</button>
         <button onClick={ ()=>setNavValue('withdraw')}>Withdraw</button>
+        <button onClick={ ()=>setNavValue('balance')}>Balance</button>
       </div>
       <h1>Titans Finance</h1>
       <NavContext.Consumer>
-        {value => value === 'invest' ? <InvestLayout /> : <WithdrawLayout/>}
+      {value => {if(value==='invest') 
+                return <InvestLayout /> 
+                else if(value==='withdraw') 
+                return <WithdrawLayout/>
+                else
+                return <BalanceLayout/>}}
       </NavContext.Consumer>
       </NavContext.Provider>
       </SupportedTokensContext.Provider>
