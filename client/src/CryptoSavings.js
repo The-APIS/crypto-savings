@@ -1,7 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
-
 import SDK from '@dapis/sdk/src/compoundSDK';
-
 import log from 'loglevel';
 import {NavContext} from './context/navContext';
 import {SDKContext, SupportedTokensContext} from './context/SDKContext.js';
@@ -29,15 +27,8 @@ const InvestLayout = ()=>{
   }
 
   function toggleLoader(){
-    if(loader===false)
-    {
-      setloader(true);
-      setloaderText("Loading...");
-    }
-    else{
-      setloader(false);
-      setloaderText("");
-    }
+    setloader(!loader);
+    setloaderText(loader ? '' : 'Loading...');
   }
 
   async function handleSubmit(){
@@ -142,21 +133,18 @@ const BalanceLayout = ()=> {
   const [tokenAmount, settokenAmount] = useState();
 
   async function handleInputChange(event) {
-    const target = event.target;
+    const { target } = event;
     const value = target.type === "checkbox" ? target.checked : target.value;
     await settokenName(value);
   }
-  async function setBal(){
+  async function setBalance(){
     const maxBalance = await sdk.getBalance(tokenName);
     settokenAmount(maxBalance/1e18);
   }
 
   useEffect(() => {
     if(!(tokenAmount===undefined))
-    alert('Balance of ' +tokenName+' is ' +tokenAmount);
-    return () => {
-      
-    }
+    alert('Balance: ' +tokenAmount);
   }, [tokenAmount,tokenName])
 
   return(
@@ -169,7 +157,7 @@ const BalanceLayout = ()=> {
           <option value={token.name} key={token.name}>{token.name}</option>
         ))}
       </select><br></br>
-      <button type="button" onClick={setBal}>Get Balance</button><br></br>
+      <button type="button" onClick={setBalance}>Get Balance</button><br></br>
     </div>
   )
 }
@@ -196,10 +184,6 @@ function CryptoSavings() {
 
   useEffect(() => {
     fetchSDK();
-    
-    return () => {
-      
-    }
   }, [fetchSDK]);
 
   if (!loaded) {
